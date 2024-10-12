@@ -1,5 +1,4 @@
-#include "matrix.h"
-#include <memory>
+#include "../include/matrix.h"
 
 Matrix::Matrix(size_t rows, size_t columns, std::unique_ptr<double[]> data)
             : m_rows(rows)

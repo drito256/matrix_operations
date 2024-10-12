@@ -1,4 +1,4 @@
-#include "matrix.h"
+#include "../include/matrix.h"
 
 #include <iostream>
 
@@ -6,7 +6,7 @@
 
 int main(){
 
-    Matrix a("a.txt");
+    Matrix a("../inout/a.txt");
     a.print();
 
     return 0;
