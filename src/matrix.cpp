@@ -11,7 +11,7 @@ Matrix::Matrix(const std::string& filename){
     std::ifstream input_file(filename);
 
     if(!input_file.is_open()){
-        std::cerr << "ERROR : couldn't open file\n";
+        std::cerr << "ERROR: couldn't open file\n";
         std::exit(1);
     }
 
@@ -54,4 +54,18 @@ void Matrix::print(){
         }
         std::cout << "|\n";
     }
+}
+
+void Matrix::save(const std::string& filename){
+    std::ofstream output_file(filename);
+    if(!output_file.is_open()){
+        std::cerr << "ERROR: couldnt open file\n";
+    }
+    for(int i=0;i<this->getRows();i++){
+        for(int j=0;j<this->getColumns();j++){
+            output_file << std::setw(5) <<  this->m_data[i * getColumns() + j] << " ";
+        }
+        output_file << "\n";
+    }
+
 }

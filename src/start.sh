@@ -1,2 +1,2 @@
-g++ main.cpp matrix.cpp -o prog
+g++ -I../include main.cpp matrix.cpp -o prog
 ./prog

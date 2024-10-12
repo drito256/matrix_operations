@@ -6,8 +6,9 @@
 
 int main(){
 
-    Matrix a("../inout/a.txt");
+    Matrix a("../inout/b.txt");
     a.print();
+    a.save("../inout/b.txt");
 
     return 0;
 }
