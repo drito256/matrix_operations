@@ -26,12 +26,18 @@ class Matrix{
        void read_file(const std::string& filename);
 
        // ostale metode za supstituciju , dekompoziciju, determinantu
+       Matrix transpose();
+       Matrix inverse();
+       Matrix det();
 
        // assignment operator
        Matrix& operator=(const Matrix& matrix);
+       Matrix& operator+=(const Matrix& m1);
+       Matrix& operator-=(const Matrix& m1);
+       Matrix& operator*=(const double scalar);
+       Matrix& operator/=(const double scalar);
        
-       // subscript operator 
-       double& operator[](int index);
+       double& operator()(int row, int col);
        
        // comparison operator
        friend bool operator==(const Matrix& m1, const Matrix& m2);
@@ -40,11 +46,7 @@ class Matrix{
        friend Matrix operator+(const Matrix& m1, const Matrix& m2);
        friend Matrix operator-(const Matrix& m1, const Matrix& m2);
        friend Matrix operator*(const Matrix& m1, const Matrix& m2);
-       friend Matrix operator*(const Matrix& m, const int scalar);
-       friend Matrix operator/(const Matrix& m1, const Matrix& m2);
-
-       friend Matrix operator+=(const Matrix& m1, const Matrix& m2);
-       friend Matrix operator-=(const Matrix& m1, const Matrix& m2);
+       friend Matrix operator*(const Matrix& m, const double scalar);
 
     private:
         size_t m_rows, m_columns;

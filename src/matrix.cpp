@@ -61,6 +61,10 @@ size_t Matrix::getColumns(){
     return this->m_columns;
 }
 
+double& Matrix::operator()(int row, int col){
+    return m_data[m_columns * row + col];
+}
+
 void Matrix::print(){
     for(int i=0;i<m_rows;i++){
         std::cout << "|";
@@ -78,7 +82,7 @@ void Matrix::save(const std::string& filename){
     }
     for(int i=0;i<m_rows;i++){
         for(int j=0;j<m_columns;j++){
-            output_file << std::setw(5) <<  this->m_data[i * m_columns + j] << " ";
+            output_file << this->m_data[i * m_columns + j] << " ";
         }
         output_file << "\n";
     }
