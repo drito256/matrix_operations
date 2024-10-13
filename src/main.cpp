@@ -13,6 +13,7 @@ int main(){
     b.print();
 
     Matrix c = a + b;
+    c += a;
     c.print();
 
     return 0;
