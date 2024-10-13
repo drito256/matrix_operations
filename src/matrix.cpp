@@ -8,6 +8,19 @@ Matrix::Matrix(size_t rows, size_t columns, std::unique_ptr<double[]> data)
 }
 
 Matrix::Matrix(const std::string& filename){
+    read_file(filename);
+}
+  
+// Copy constructor (deep copy)
+Matrix::Matrix(const Matrix& other) : m_rows(other.m_rows), m_columns(other.m_columns), 
+                              m_data(std::make_unique<double[]>(other.m_rows * other.m_columns)) {
+    // Copy the data from the other matrix
+    for (int i = 0; i < m_rows * m_columns; ++i) {
+        m_data[i] = other.m_data[i];
+    }
+}
+
+void Matrix::read_file(const std::string& filename){
     std::ifstream input_file(filename);
 
     if(!input_file.is_open()){
@@ -37,6 +50,7 @@ Matrix::Matrix(const std::string& filename){
     for(int i=0;i<file_data.size();i++){
         m_data[i] = file_data[i];
     }
+
 }
 
 size_t Matrix::getRows(){
@@ -69,3 +83,60 @@ void Matrix::save(const std::string& filename){
     }
 
 }
+
+Matrix& Matrix::operator=(const Matrix& matrix){
+    // Check for self-assignment
+    if (this == &matrix) {
+        return *this;
+    }
+
+    // If the dimensions are different, reallocate memory
+    if (m_rows != matrix.m_rows || m_columns != matrix.m_columns) {
+        // Resize the matrix by allocating new memory for the data
+        m_rows = matrix.m_rows;
+        m_columns = matrix.m_columns;
+        m_data = std::make_unique<double[]>(m_rows * m_columns);
+    }
+
+    // Copy the elements from the source matrix
+    for (int i = 0; i < m_rows * m_columns; ++i) {
+        m_data[i] = matrix.m_data[i];
+    }
+
+    return *this;  // Return *this to allow chained assignments
+}
+
+Matrix operator+(const Matrix& m1, const Matrix& m2){
+    if(m1.m_rows != m2.m_rows || m1.m_columns != m2.m_columns){
+        throw std::invalid_argument("Matrices must have the same dimensions");
+    }
+
+    Matrix result(m1.m_rows, m1.m_columns, std::make_unique<double[]>(m1.m_rows * m1.m_columns));
+
+    for(int i=0;i<m1.m_rows;i++){
+        for(int j=0;j<m1.m_columns;j++){
+            result.m_data[i * m1.m_columns + j] = m1.m_data[i * m1.m_columns + j] + 
+                                                  m2.m_data[i * m2.m_columns + j];
+        }
+    }
+    return result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

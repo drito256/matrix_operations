@@ -9,6 +9,11 @@ int main(){
     Matrix a("../inout/b.txt");
     a.print();
     a.save("../inout/b.txt");
+    Matrix b = a;
+    b.print();
+
+    Matrix c = a + b;
+    c.print();
 
     return 0;
 }

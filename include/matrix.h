@@ -14,15 +14,16 @@ class Matrix{
     public:
         Matrix(size_t rows, size_t columns, std::unique_ptr<double[]> data); // ili mozda shared_ptr?
         Matrix(const std::string& filename);
+        Matrix(const Matrix& other);
         Matrix() = delete;
        ~Matrix() = default;
 
        size_t getRows();
        size_t getColumns();
     
-       void print(); // mozda friend?
-       void save(const std::string& file);
-       Matrix read_file(std::string_view file);
+       void print();
+       void save(const std::string& filename);
+       void read_file(const std::string& filename);
 
        // ostale metode za supstituciju , dekompoziciju, determinantu
 
