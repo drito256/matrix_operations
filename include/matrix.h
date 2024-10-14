@@ -29,14 +29,21 @@ class Matrix{
        Matrix transpose();
        Matrix inverse();
        Matrix det();
+       Matrix sups_backward();
+       Matrix sups_forward();
+       Matrix LU_decomp();
+       Matrix LUP_decomp();
 
        // assignment operator
        Matrix& operator=(const Matrix& matrix);
+
+       // arithmetic operators
        Matrix& operator+=(const Matrix& m1);
        Matrix& operator-=(const Matrix& m1);
        Matrix& operator*=(const double scalar);
        Matrix& operator/=(const double scalar);
        
+       double operator()(int row, int col) const;
        double& operator()(int row, int col);
        
        // comparison operator
@@ -52,6 +59,5 @@ class Matrix{
         size_t m_rows, m_columns;
         std::unique_ptr<double[]> m_data; // mozda shared
 };
-
 
 #endif

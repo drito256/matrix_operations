@@ -61,6 +61,10 @@ size_t Matrix::getColumns(){
     return this->m_columns;
 }
 
+double Matrix::operator()(int row, int col) const{
+    return m_data[m_columns * row + col];
+
+}
 double& Matrix::operator()(int row, int col){
     return m_data[m_columns * row + col];
 }
@@ -205,3 +209,19 @@ Matrix& Matrix::operator/=(const double scalar){
     return *this;
 }
 
+Matrix operator*(const Matrix& m1, const Matrix& m2){
+    Matrix result(m1.m_rows, m2.m_columns, std::make_unique<double[]>(m1.m_rows * m2.m_columns));
+    if(m1.m_columns != m2.m_rows){
+        throw std::invalid_argument("Matrices dimensions don't match");
+    }
+
+    for(int i=0;i<m1.m_rows;i++){
+        for(int j=0;j<m2.m_columns;j++){
+            result(i,j) = 0;
+            for(int k=0;k<m1.m_columns;k++){
+                result(i,j) += m1(i,k) * m2(k,j);
+            }
+        }
+    }
+    return result;
+}
