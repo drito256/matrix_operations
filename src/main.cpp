@@ -12,7 +12,10 @@ int main(){
     b.print();
 
     Matrix c = a * b;
+    
     c.print();
+    Matrix t = c.transpose();
+    t.print();
     std::cout << c(2,2) << std::endl;
 
     return 0;

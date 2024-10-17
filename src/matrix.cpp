@@ -225,3 +225,23 @@ Matrix operator*(const Matrix& m1, const Matrix& m2){
     }
     return result;
 }
+
+Matrix Matrix::transpose(){
+    Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
+                                                                         this->m_columns));
+
+
+    for (int i = 0; i < this->m_rows; i++) {
+           for (int j = 0; j < this->m_columns; j++) {
+               res.m_data[j * this->m_rows + i] = this->m_data[i * this->m_columns + j];
+           }
+    }
+
+    return res;
+}
+
+
+
+
+
+

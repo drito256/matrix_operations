@@ -28,11 +28,11 @@ class Matrix{
        // ostale metode za supstituciju , dekompoziciju, determinantu
        Matrix transpose();
        Matrix inverse();
-       Matrix det();
        Matrix sups_backward();
        Matrix sups_forward();
        Matrix LU_decomp();
        Matrix LUP_decomp();
+       double det();
 
        // assignment operator
        Matrix& operator=(const Matrix& matrix);
