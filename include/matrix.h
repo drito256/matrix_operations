@@ -18,21 +18,21 @@ class Matrix{
         Matrix() = delete;
        ~Matrix() = default;
 
-       size_t getRows();
-       size_t getColumns();
+       size_t getRows() const;
+       size_t getColumns() const;
     
-       void print();
+       void print() const;
        void save(const std::string& filename);
        void read_file(const std::string& filename);
 
        // ostale metode za supstituciju , dekompoziciju, determinantu
-       Matrix transpose();
-       Matrix inverse();
-       Matrix sups_backward();
-       Matrix sups_forward();
-       Matrix LU_decomp();
-       Matrix LUP_decomp();
-       double det();
+       Matrix transpose() const;
+       Matrix inverse() const;
+       Matrix sups_backward() const;
+       Matrix sups_forward() const;
+       Matrix LU_decomp() const;
+       Matrix LUP_decomp() const;
+       double det() const;
 
        // assignment operator
        Matrix& operator=(const Matrix& matrix);
