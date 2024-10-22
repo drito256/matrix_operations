@@ -54,10 +54,10 @@ void Matrix::read_file(const std::string& filename){
 
 }
 
-size_t Matrix::getRows(){
+size_t Matrix::getRows() const{
     return this->m_rows;
 }
-size_t Matrix::getColumns(){
+size_t Matrix::getColumns() const{
     return this->m_columns;
 }
 
@@ -69,7 +69,7 @@ double& Matrix::operator()(int row, int col){
     return m_data[m_columns * row + col];
 }
 
-void Matrix::print(){
+void Matrix::print() const{
     for(int i=0;i<m_rows;i++){
         std::cout << "|";
         for(int j=0;j<m_columns;j++){
@@ -210,11 +210,11 @@ Matrix& Matrix::operator/=(const double scalar){
 }
 
 Matrix operator*(const Matrix& m1, const Matrix& m2){
-    Matrix result(m1.m_rows, m2.m_columns, std::make_unique<double[]>(m1.m_rows * m2.m_columns));
     if(m1.m_columns != m2.m_rows){
         throw std::invalid_argument("Matrices dimensions don't match");
     }
 
+    Matrix result(m1.m_rows, m2.m_columns, std::make_unique<double[]>(m1.m_rows * m2.m_columns));
     for(int i=0;i<m1.m_rows;i++){
         for(int j=0;j<m2.m_columns;j++){
             result(i,j) = 0;
@@ -226,7 +226,7 @@ Matrix operator*(const Matrix& m1, const Matrix& m2){
     return result;
 }
 
-Matrix Matrix::transpose(){
+Matrix Matrix::transpose() const{
     Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
                                                                          this->m_columns));
 
@@ -240,8 +240,59 @@ Matrix Matrix::transpose(){
     return res;
 }
 
+Matrix Matrix::LU_decomp() const{
+    if(this->m_rows != this->m_columns){
+        throw std::invalid_argument("Matrix must be square");
+    }
+    Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
+                                                                         this->m_columns));
+    for(int i=0;i<m_rows * m_columns;i++){
+        res.m_data[i] = this->m_data[i];
+    }
 
+    int n = m_columns; // or m_rows, doesnt matter
+    for(int i=0;i<n-1;i++){
+        for(int j=i+1;j<n;j++){
+            res(j,i) /= res(i,i); 
+            for(int k=i+1;k<n;k++){
+                res(j,k) -= res(j,i) * res(i,k);
+            }
+        }
+    }
+    return res;
+}
 
+Matrix Matrix::sups_forward(const Matrix& b) const{
+    if(this->m_rows != this->m_columns){
+        throw std::invalid_argument("Matrix must be square");
+    }
 
+    Matrix L(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
+                                                                       this->m_columns));
+    Matrix res(this->m_rows, 1, std::make_unique<double[]>(this->m_rows));
 
+    // extract L matrix
+    int column_counter = 1;
+    for(int i=0;i<m_rows;i++){
+        for(int j=0;j<m_columns;j++){
+            if(j < column_counter){
+                L(i,j) = this->m_data[i * this->m_columns+ j];
+            }
+            else{
+                L(i,j) = 0;
+            }
+        }
+        column_counter++;
+    }
 
+    int n = m_columns;
+    for(int i=0;i<n;i++){
+        res.m_data[i] = b.m_data[i];
+
+        for(int j=0;j<i;j++){
+            res.m_data[i] -= L(i,j) * res.m_data[j];
+        }
+    }
+
+    return res;
+}

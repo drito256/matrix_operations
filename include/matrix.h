@@ -28,8 +28,8 @@ class Matrix{
        // ostale metode za supstituciju , dekompoziciju, determinantu
        Matrix transpose() const;
        Matrix inverse() const;
-       Matrix sups_backward() const;
-       Matrix sups_forward() const;
+       Matrix sups_backward(const Matrix& b) const;
+       Matrix sups_forward(const Matrix& y) const;
        Matrix LU_decomp() const;
        Matrix LUP_decomp() const;
        double det() const;

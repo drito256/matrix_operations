@@ -7,16 +7,12 @@
 int main(){
 
     Matrix a("../inout/a.txt");
-    a.print();
     Matrix b("../inout/b.txt");
-    b.print();
-
-    Matrix c = a * b;
+    Matrix lu_a = a.LU_decomp();
+    lu_a.print();
+    Matrix sups = lu_a.sups_forward(b);
+    sups.print();
     
-    c.print();
-    Matrix t = c.transpose();
-    t.print();
-    std::cout << c(2,2) << std::endl;
 
     return 0;
 }
