@@ -3,32 +3,40 @@
 
 #include <vector>
 #include <string>
+#include <cmath>
 
 
 inline std::vector<double> split_line(const std::string& line) {
     std::vector<double> res;
     int start_index = 0;
-    bool in_number = false; // Flag to track if we are currently reading a number
+    bool in_number = false;
 
     for (int i = 0; i < line.length(); i++) {
         if (std::isspace(line[i])) {
-            if (in_number) { // If we were reading a number
+            if (in_number) {
                 res.push_back(std::stod(line.substr(start_index, i - start_index)));
-                in_number = false; // We're now outside of a number
+                in_number = false;
             }
         } else {
-            if (!in_number) { // If we're not already reading a number
-                start_index = i; // Mark the start of a new number
-                in_number = true; // We're now reading a number
+            if (!in_number) { 
+                start_index = i; 
+                in_number = true; 
             }
         }
     }
 
-    // If we ended while still reading a number, process the last number
     if (in_number) {
         res.push_back(std::stod(line.substr(start_index)));
     }
 
     return res;
 }
+
+inline bool compare(const double num1, const double num2, const double epsilon){
+    if(fabs(num1 - num2) <= epsilon){
+        return true;
+    }
+    return false;
+}
+
 #endif

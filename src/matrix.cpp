@@ -346,3 +346,37 @@ Matrix Matrix::sups_backward(const Matrix& y) const{
     return res;
 }
 
+// TODO
+Matrix Matrix::LUP_decomp() const{
+    if(this->m_rows != this->m_columns){
+        throw std::invalid_argument("Matrix must be square");
+    }
+    Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
+                                                                         this->m_columns));
+    for(int i=0;i<m_rows * m_columns;i++){
+        res.m_data[i] = this->m_data[i];
+    }
+
+    int n = m_columns; // or m_rows, doesnt matter
+    for(int i=0;i<n-1;i++){
+        for(int j=i+1;j<n;j++){
+            res(j,i) /= res(i,i); 
+            for(int k=i+1;k<n;k++){
+                res(j,k) -= res(j,i) * res(i,k);
+            }
+        }
+    }
+    return res;
+
+}
+
+// TODO
+Matrix Matrix::solve(const Matrix& vec)const {
+    if(this->m_rows != this->m_columns){
+        throw std::invalid_argument("Matrix must be square");
+    }
+    Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
+                                                                         this->m_columns));
+
+    return res;
+}

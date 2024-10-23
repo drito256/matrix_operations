@@ -32,6 +32,7 @@ class Matrix{
        Matrix sups_forward(const Matrix& y) const;
        Matrix LU_decomp() const;
        Matrix LUP_decomp() const;
+       Matrix solve(const Matrix& vec) const;
        double det() const;
 
        // assignment operator
