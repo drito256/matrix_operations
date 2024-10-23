@@ -12,6 +12,8 @@ int main(){
     lu_a.print();
     Matrix sups = lu_a.sups_forward(b);
     sups.print();
+    Matrix sups2 = lu_a.sups_backward(sups);
+    sups2.print();
     
 
     return 0;

@@ -266,17 +266,19 @@ Matrix Matrix::sups_forward(const Matrix& b) const{
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
-
     Matrix L(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
                                                                        this->m_columns));
     Matrix res(this->m_rows, 1, std::make_unique<double[]>(this->m_rows));
 
     // extract L matrix
-    int column_counter = 1;
+    int column_counter = 0;
     for(int i=0;i<m_rows;i++){
         for(int j=0;j<m_columns;j++){
             if(j < column_counter){
                 L(i,j) = this->m_data[i * this->m_columns+ j];
+            }
+            else if(j == column_counter){
+                L(i,j) = 1;
             }
             else{
                 L(i,j) = 0;
@@ -284,15 +286,63 @@ Matrix Matrix::sups_forward(const Matrix& b) const{
         }
         column_counter++;
     }
+    // std::cout << "L matrix" << std::endl;
+    // L.print();
+    
+
+    // init
+    for(int i=0;i<m_rows;i++){
+        res.m_data[i] = b.m_data[i];
+    }
 
     int n = m_columns;
-    for(int i=0;i<n;i++){
-        res.m_data[i] = b.m_data[i];
-
-        for(int j=0;j<i;j++){
-            res.m_data[i] -= L(i,j) * res.m_data[j];
+    for(int i=0;i<n-1;i++){
+        for(int j=i+1;j<n;j++){
+            res.m_data[j] -= L(j,i) * res.m_data[i];
         }
     }
 
     return res;
 }
+
+Matrix Matrix::sups_backward(const Matrix& y) const{
+    if(this->m_rows != this->m_columns){
+        throw std::invalid_argument("Matrix must be square");
+    }
+
+    Matrix U(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
+                                                                       this->m_columns));
+    Matrix res(this->m_rows, 1, std::make_unique<double[]>(this->m_rows));
+
+    // extract U matrix
+    int column_counter = 0;
+    for(int i=0;i<m_rows;i++){
+        for(int j=0;j<m_columns;j++){
+            if(j >= column_counter){
+                U(i,j) = this->m_data[i * this->m_columns+ j];
+            }
+            else{
+                U(i,j) = 0;
+            }
+        }
+        column_counter++;
+    }
+
+//    std::cout << "U matrix" << std::endl;
+//    U.print();
+    
+    // init
+    for(int i=0;i<m_rows;i++){
+        res.m_data[i] = y.m_data[i];
+    }
+
+    int n = m_columns;
+    for (int i = n - 1; i >= 0; --i) {
+        for (int j = i + 1; j < n; ++j) {
+            res.m_data[i] -= U(i, j) * res.m_data[j];
+        }
+        res.m_data[i] /= U(i, i);
+    }
+    return res;
+}
+
