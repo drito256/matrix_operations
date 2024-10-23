@@ -346,28 +346,81 @@ Matrix Matrix::sups_backward(const Matrix& y) const{
     return res;
 }
 
-// TODO
+void Matrix::swap_rows(int row1, int row2){
+    if(row1 >= this->m_rows || row2 >= this->m_rows){
+        throw std::invalid_argument("One or both row indices specified larger than number of rows"
+                                    "in matrix");
+    }
+    
+    std::vector<double> temp_row;
+    for(int i=0;i<this->m_columns;i++){
+        temp_row.push_back(this->m_data[row1 * this->m_columns + i]);
+    }
+
+    for(int j=0;j<this->m_columns;j++){
+        this->m_data[this->m_columns * row1 + j] = this->m_data[this->m_columns * row2 + j];
+    }
+    for(int j=0;j<this->m_columns;j++){
+        this->m_data[this->m_columns * row2 + j] = temp_row[j];
+    }
+}
+
 Matrix Matrix::LUP_decomp() const{
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
     Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
                                                                          this->m_columns));
-    for(int i=0;i<m_rows * m_columns;i++){
+    Matrix P(this->m_rows, this->m_columns,std::make_unique<double[]>(this->m_rows *
+                                                                      this->m_columns));
+    
+    for(int i=0;i<this->m_rows * this->m_columns;i++){
         res.m_data[i] = this->m_data[i];
     }
-
-    int n = m_columns; // or m_rows, doesnt matter
-    for(int i=0;i<n-1;i++){
-        for(int j=i+1;j<n;j++){
-            res(j,i) /= res(i,i); 
-            for(int k=i+1;k<n;k++){
-                res(j,k) -= res(j,i) * res(i,k);
+    // set P to identity
+    for(int i=0;i<this->m_rows;i++){
+        for(int j=0;j<this->m_columns;j++){
+            if(i == j){
+                P.m_data[i * this->m_columns + j] = 1;
+            }
+            else {
+                P.m_data[i * this->m_columns + j] = 0;
             }
         }
     }
-    return res;
 
+    int n = m_columns; // or m_rows, doesnt matter since matrix is square
+    for (int i = 0; i < n - 1; i++) {
+        int pivot_row = i;
+        double max_val = std::fabs(res(i, i));
+        for (int j = i + 1; j < n; j++) {
+            if (std::fabs(res(j, i)) > max_val) {
+                pivot_row = j;
+                max_val = std::fabs(res(j, i));
+            }
+        }
+        if(compare(max_val, 0, 1e-9)){
+            std::cerr << "Found 0 on pivot element when doing LUP decomposition, "
+                         "result may be incorrect";
+            continue;
+        }
+
+        // swap rows
+        if (pivot_row != i) {
+            res.swap_rows(i, pivot_row);
+            P.swap_rows(i, pivot_row); 
+        }
+
+        // LU decomp
+        for (int j = i + 1; j < n; j++) {
+            res(j, i) /= res(i, i); 
+            for (int k = i + 1; k < n; k++) {
+                res(j, k) -= res(j, i) * res(i, k);
+            }
+        }
+    }
+    
+    return  res;
 }
 
 // TODO

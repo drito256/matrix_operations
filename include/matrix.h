@@ -59,6 +59,8 @@ class Matrix{
     private:
         size_t m_rows, m_columns;
         std::unique_ptr<double[]> m_data; // mozda shared
+
+        void swap_rows(int row1, int row2);
 };
 
 #endif
