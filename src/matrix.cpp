@@ -253,6 +253,11 @@ Matrix Matrix::LU_decomp() const{
     int n = m_columns; // or m_rows, doesnt matter
     for(int i=0;i<n-1;i++){
         for(int j=i+1;j<n;j++){
+            if(compare(res(i,i), 0, 1e-9)){
+                std::cerr << "Found 0 on pivot element when doing LU decomposition, "
+                             "result may be incorrect";
+                continue;
+            }
             res(j,i) /= res(i,i); 
             for(int k=i+1;k<n;k++){
                 res(j,k) -= res(j,i) * res(i,k);
@@ -424,12 +429,44 @@ Matrix Matrix::LUP_decomp() const{
 }
 
 // TODO
-Matrix Matrix::solve(const Matrix& vec)const {
+Matrix Matrix::solve_w_LU(const Matrix& vec)const {
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
-    Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
-                                                                         this->m_columns));
 
-    return res;
+    Matrix lu = LU_decomp();    
+    Matrix l = lu;
+    Matrix u = lu;
+
+    // setup L matrix
+    for(int i=0;i<lu.m_rows;i++){
+        for(int j=0;j<lu.m_columns;j++){
+            if(j > i){
+                l(i,j) = 0;
+            }
+            else if (j == i){
+                l(i,j) = 1;
+            }
+            else{
+                l(i,j) = lu(i,j);
+            }
+        }
+    }
+
+    // setup U matrix
+    for(int i=0;i<lu.m_rows;i++){
+        for(int j=0;j<lu.m_columns;j++){
+            if(j >= i){
+                u(i,j) = lu(i,j);
+            }
+            else{
+                u(i,j) = 0;
+            }
+        }
+    }
+
+
+    Matrix y = l.sups_forward(vec);
+    Matrix x = u.sups_backward(y); 
+    return x;
 }

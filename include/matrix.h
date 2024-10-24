@@ -15,6 +15,7 @@ class Matrix{
         Matrix(size_t rows, size_t columns, std::unique_ptr<double[]> data); // ili mozda shared_ptr?
         Matrix(const std::string& filename);
         Matrix(const Matrix& other);
+        Matrix(std::vector<double> v);
         Matrix() = delete;
        ~Matrix() = default;
 
@@ -32,7 +33,8 @@ class Matrix{
        Matrix sups_forward(const Matrix& y) const;
        Matrix LU_decomp() const;
        Matrix LUP_decomp() const;
-       Matrix solve(const Matrix& vec) const;
+       Matrix solve_w_LU(const Matrix& vec) const;
+       Matrix solve_w_LUP(const Matrix& vec) const;
        double det() const;
 
        // assignment operator
