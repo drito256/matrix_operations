@@ -8,9 +8,8 @@ int main(){
 
     Matrix a("../inout/a.txt");
     Matrix b("../inout/b.txt");
-    Matrix lup_a = a.LUP_decomp();
-    (a * b).print();
-
+    std::pair<Matrix,Matrix> lup = a.LUP_decomp();
+    lup.second.print();
 //    lup_a.print();
     /*Matrix sups = lu_a.sups_forward(b);
     sups.print();

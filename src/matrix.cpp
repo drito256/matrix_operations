@@ -73,7 +73,10 @@ void Matrix::print() const{
     for(int i=0;i<m_rows;i++){
         std::cout << "|";
         for(int j=0;j<m_columns;j++){
-            std::cout << std::setw(5) << this->m_data[i * m_columns + j] << " ";
+            std::cout 
+            << std::setprecision(4) 
+            << std::setw(10) 
+            <<  this->m_data[i * m_columns + j] << " ";
         }
         std::cout << "|\n";
     }
@@ -370,17 +373,19 @@ void Matrix::swap_rows(int row1, int row2){
     }
 }
 
-Matrix Matrix::LUP_decomp() const{
+std::pair<Matrix, Matrix> Matrix::LUP_decomp() const{
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
-    Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
+
+   
+    Matrix LU(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
                                                                          this->m_columns));
     Matrix P(this->m_rows, this->m_columns,std::make_unique<double[]>(this->m_rows *
                                                                       this->m_columns));
     
     for(int i=0;i<this->m_rows * this->m_columns;i++){
-        res.m_data[i] = this->m_data[i];
+        LU.m_data[i] = this->m_data[i];
     }
     // set P to identity
     for(int i=0;i<this->m_rows;i++){
@@ -397,11 +402,11 @@ Matrix Matrix::LUP_decomp() const{
     int n = m_columns; // or m_rows, doesnt matter since matrix is square
     for (int i = 0; i < n - 1; i++) {
         int pivot_row = i;
-        double max_val = std::fabs(res(i, i));
+        double max_val = std::fabs(LU(i, i));
         for (int j = i + 1; j < n; j++) {
-            if (std::fabs(res(j, i)) > max_val) {
+            if (std::fabs(LU(j, i)) > max_val) {
                 pivot_row = j;
-                max_val = std::fabs(res(j, i));
+                max_val = std::fabs(LU(j, i));
             }
         }
         if(compare(max_val, 0, 1e-9)){
@@ -412,23 +417,22 @@ Matrix Matrix::LUP_decomp() const{
 
         // swap rows
         if (pivot_row != i) {
-            res.swap_rows(i, pivot_row);
+            LU.swap_rows(i, pivot_row);
             P.swap_rows(i, pivot_row); 
         }
 
         // LU decomp
         for (int j = i + 1; j < n; j++) {
-            res(j, i) /= res(i, i); 
+            LU(j, i) /= LU(i, i); 
             for (int k = i + 1; k < n; k++) {
-                res(j, k) -= res(j, i) * res(i, k);
+                LU(j, k) -= LU(j, i) * LU(i, k);
             }
         }
     }
     
-    return  res;
+    return  std::pair<Matrix, Matrix>(LU,P);
 }
 
-// TODO
 Matrix Matrix::solve_w_LU(const Matrix& vec)const {
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
@@ -465,8 +469,18 @@ Matrix Matrix::solve_w_LU(const Matrix& vec)const {
         }
     }
 
-
     Matrix y = l.sups_forward(vec);
     Matrix x = u.sups_backward(y); 
     return x;
 }
+
+// TODO
+/*Matrix Matrix::solve_w_LUP(const Matrix& vec) const{
+
+}
+
+double Matrix::det(){
+    double res = 0;
+
+    return res;
+}*/

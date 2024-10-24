@@ -32,7 +32,7 @@ class Matrix{
        Matrix sups_backward(const Matrix& b) const;
        Matrix sups_forward(const Matrix& y) const;
        Matrix LU_decomp() const;
-       Matrix LUP_decomp() const;
+       std::pair<Matrix, Matrix> LUP_decomp() const;
        Matrix solve_w_LU(const Matrix& vec) const;
        Matrix solve_w_LUP(const Matrix& vec) const;
        double det() const;
