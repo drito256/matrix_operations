@@ -6,10 +6,12 @@ Matrix::Matrix(size_t rows, size_t columns, std::unique_ptr<double[]> data)
             , m_columns(columns)
             , m_data(std::move(data))
 {
+    m_swap_count = 0;
 }
 
 Matrix::Matrix(const std::string& filename){
     read_file(filename);
+    m_swap_count = 0;
 }
   
 // Copy constructor (deep copy)
@@ -19,6 +21,7 @@ Matrix::Matrix(const Matrix& other) : m_rows(other.m_rows), m_columns(other.m_co
     for (int i = 0; i < m_rows * m_columns; ++i) {
         m_data[i] = other.m_data[i];
     }
+    this->m_swap_count = other.m_swap_count;
 }
 
 void Matrix::read_file(const std::string& filename){
@@ -107,6 +110,7 @@ Matrix& Matrix::operator=(const Matrix& matrix){
         // Resize the matrix by allocating new memory for the data
         m_rows = matrix.m_rows;
         m_columns = matrix.m_columns;
+        m_swap_count = matrix.m_swap_count;
         m_data = std::make_unique<double[]>(m_rows * m_columns);
     }
 
@@ -373,7 +377,7 @@ void Matrix::swap_rows(int row1, int row2){
     }
 }
 
-std::pair<Matrix, Matrix> Matrix::LUP_decomp() const{
+std::pair<Matrix, Matrix> Matrix::LUP_decomp() {
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
@@ -417,6 +421,7 @@ std::pair<Matrix, Matrix> Matrix::LUP_decomp() const{
 
         // swap rows
         if (pivot_row != i) {
+            this->m_swap_count++;
             LU.swap_rows(i, pivot_row);
             P.swap_rows(i, pivot_row); 
         }
@@ -433,41 +438,51 @@ std::pair<Matrix, Matrix> Matrix::LUP_decomp() const{
     return  std::pair<Matrix, Matrix>(LU,P);
 }
 
+Matrix Matrix::extract_L() const{
+    Matrix L(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows *
+                                                                       this->m_columns));
+    for(int i=0;i<this->m_rows;i++){
+        for(int j=0;j<this->m_columns;j++){
+            if(j > i){
+                L(i,j) = 0;
+            }
+            else if (j == i){
+                L(i,j) = 1;
+            }
+            else{
+                L(i,j) = this->m_data[i * this->m_columns + j];
+            }
+        }
+    }
+    return L;
+}
+
+Matrix Matrix::extract_U() const{
+    Matrix U(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows *
+                                                                       this->m_columns));
+
+    for(int i=0;i<this->m_rows;i++){
+        for(int j=0;j<this->m_columns;j++){
+            if(j >= i){
+                U(i,j) = this->m_data[i * this->m_columns + j];
+            }
+            else{
+                U(i,j) = 0;
+            }
+        }
+    }
+
+    return U;
+}
+
 Matrix Matrix::solve_w_LU(const Matrix& vec)const {
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
 
     Matrix lu = LU_decomp();    
-    Matrix l = lu;
-    Matrix u = lu;
-
-    // setup L matrix
-    for(int i=0;i<lu.m_rows;i++){
-        for(int j=0;j<lu.m_columns;j++){
-            if(j > i){
-                l(i,j) = 0;
-            }
-            else if (j == i){
-                l(i,j) = 1;
-            }
-            else{
-                l(i,j) = lu(i,j);
-            }
-        }
-    }
-
-    // setup U matrix
-    for(int i=0;i<lu.m_rows;i++){
-        for(int j=0;j<lu.m_columns;j++){
-            if(j >= i){
-                u(i,j) = lu(i,j);
-            }
-            else{
-                u(i,j) = 0;
-            }
-        }
-    }
+    Matrix l = lu.extract_L();
+    Matrix u = lu.extract_U();
 
     Matrix y = l.sups_forward(vec);
     Matrix x = u.sups_backward(y); 
@@ -475,12 +490,33 @@ Matrix Matrix::solve_w_LU(const Matrix& vec)const {
 }
 
 // TODO
-/*Matrix Matrix::solve_w_LUP(const Matrix& vec) const{
+Matrix Matrix::solve_w_LUP(const Matrix& vec) {
+    if(this->m_rows != this->m_columns){
+        throw std::invalid_argument("Matrix must be square");
+    }
 
+    std::pair<Matrix,Matrix> lup = LUP_decomp();    
+    Matrix l = lup.first.extract_L();
+    Matrix u = lup.first.extract_U();
+
+    Matrix b = lup.second  * vec;
+    Matrix y = l.sups_forward(b);
+    Matrix x = u.sups_backward(y); 
+    return x;
 }
 
-double Matrix::det(){
-    double res = 0;
+double Matrix::det_w_LUP() const{
+    double res = 1;
 
+    Matrix u = extract_U();
+
+    for(int i=0;i<u.m_rows;i++){
+        res *= u(i,i);
+    }
+
+    res *= ((m_swap_count % 2 == 0) ? 1 : -1);
     return res;
+}
+
+/*Matrix Matrix::inverse() const{
 }*/

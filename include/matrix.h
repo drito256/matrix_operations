@@ -32,10 +32,12 @@ class Matrix{
        Matrix sups_backward(const Matrix& b) const;
        Matrix sups_forward(const Matrix& y) const;
        Matrix LU_decomp() const;
-       std::pair<Matrix, Matrix> LUP_decomp() const;
+       std::pair<Matrix, Matrix> LUP_decomp();
+       Matrix extract_L() const;
+       Matrix extract_U() const;
        Matrix solve_w_LU(const Matrix& vec) const;
-       Matrix solve_w_LUP(const Matrix& vec) const;
-       double det() const;
+       Matrix solve_w_LUP(const Matrix& vec);  // not const cause of swap_count
+       double det_w_LUP() const;
 
        // assignment operator
        Matrix& operator=(const Matrix& matrix);
@@ -59,7 +61,8 @@ class Matrix{
        friend Matrix operator*(const Matrix& m, const double scalar);
 
     private:
-        size_t m_rows, m_columns;
+        size_t m_rows{0}, m_columns{0};
+        size_t m_swap_count{0};
         std::unique_ptr<double[]> m_data; // mozda shared
 
         void swap_rows(int row1, int row2);
