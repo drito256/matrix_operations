@@ -1,6 +1,8 @@
 #include "../include/matrix.h"
 #include <stdexcept>
 
+
+// Constructor 1
 Matrix::Matrix(size_t rows, size_t columns, std::unique_ptr<double[]> data)
             : m_rows(rows)
             , m_columns(columns)
@@ -9,21 +11,23 @@ Matrix::Matrix(size_t rows, size_t columns, std::unique_ptr<double[]> data)
     m_swap_count = 0;
 }
 
+// Constructor 2
 Matrix::Matrix(const std::string& filename){
     read_file(filename);
     m_swap_count = 0;
 }
   
-// Copy constructor (deep copy)
+// Copy constructor
 Matrix::Matrix(const Matrix& other) : m_rows(other.m_rows), m_columns(other.m_columns), 
-                              m_data(std::make_unique<double[]>(other.m_rows * other.m_columns)) {
-    // Copy the data from the other matrix
+                                      m_data(std::make_unique<double[]>(other.m_rows * 
+                                                                        other.m_columns)) {
     for (int i = 0; i < m_rows * m_columns; ++i) {
         m_data[i] = other.m_data[i];
     }
     this->m_swap_count = other.m_swap_count;
 }
 
+// Read matrix from given file
 void Matrix::read_file(const std::string& filename){
     std::ifstream input_file(filename);
 
@@ -38,7 +42,8 @@ void Matrix::read_file(const std::string& filename){
     std::vector<double> file_data;
         
     while(getline(input_file, line)){
-
+        
+        // split line func contained in helper.h file
         std::vector line_data = split_line(line);
         columns = line_data.size();
         for(int i=0;i<line_data.size();i++){
@@ -57,6 +62,7 @@ void Matrix::read_file(const std::string& filename){
 
 }
 
+// Getters
 size_t Matrix::getRows() const{
     return this->m_rows;
 }
@@ -64,6 +70,7 @@ size_t Matrix::getColumns() const{
     return this->m_columns;
 }
 
+// why did I need both here?
 double Matrix::operator()(int row, int col) const{
     return m_data[m_columns * row + col];
 
@@ -72,6 +79,7 @@ double& Matrix::operator()(int row, int col){
     return m_data[m_columns * row + col];
 }
 
+// nicely print matrix
 void Matrix::print() const{
     for(int i=0;i<m_rows;i++){
         std::cout << "|";
@@ -85,6 +93,7 @@ void Matrix::print() const{
     }
 }
 
+// save matrix to given file
 void Matrix::save(const std::string& filename){
     std::ofstream output_file(filename);
     if(!output_file.is_open()){
@@ -99,29 +108,28 @@ void Matrix::save(const std::string& filename){
 
 }
 
+// asignment operator
 Matrix& Matrix::operator=(const Matrix& matrix){
-    // Check for self-assignment
     if (this == &matrix) {
         return *this;
     }
 
-    // If the dimensions are different, reallocate memory
+    // if the dimensions are different, reallocate memory
     if (m_rows != matrix.m_rows || m_columns != matrix.m_columns) {
-        // Resize the matrix by allocating new memory for the data
         m_rows = matrix.m_rows;
         m_columns = matrix.m_columns;
         m_swap_count = matrix.m_swap_count;
         m_data = std::make_unique<double[]>(m_rows * m_columns);
     }
 
-    // Copy the elements from the source matrix
     for (int i = 0; i < m_rows * m_columns; ++i) {
         m_data[i] = matrix.m_data[i];
     }
 
-    return *this;  // Return *this to allow chained assignments
+    return *this;
 }
 
+// compare operator
 bool operator==(const Matrix &m1 ,const Matrix& m2){
     if(m1.m_rows != m2.m_rows || m1.m_columns != m2.m_columns){
         throw std::invalid_argument("Matrices must be same dimension");
@@ -137,6 +145,7 @@ bool operator==(const Matrix &m1 ,const Matrix& m2){
     return true;
 }
 
+// arithmetic operator overloads
 Matrix operator+(const Matrix& m1, const Matrix& m2){
     if(m1.m_rows != m2.m_rows || m1.m_columns != m2.m_columns){
         throw std::invalid_argument("Matrices must be same dimension");
@@ -233,6 +242,7 @@ Matrix operator*(const Matrix& m1, const Matrix& m2){
     return result;
 }
 
+// Transpose matrix - (switching rows with columns and vice versa)
 Matrix Matrix::transpose() const{
     Matrix res(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
                                                                          this->m_columns));
@@ -247,6 +257,7 @@ Matrix Matrix::transpose() const{
     return res;
 }
 
+// LU decomposition
 Matrix Matrix::LU_decomp() const{
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
@@ -274,7 +285,8 @@ Matrix Matrix::LU_decomp() const{
     return res;
 }
 
-Matrix Matrix::sups_forward(const Matrix& b) const{
+// Forward substitution, needs to take in vector b, returns vector y 
+Matrix Matrix::subs_forward(const Matrix& b) const{
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
@@ -282,26 +294,10 @@ Matrix Matrix::sups_forward(const Matrix& b) const{
                                                                        this->m_columns));
     Matrix res(this->m_rows, 1, std::make_unique<double[]>(this->m_rows));
 
-    // extract L matrix
-    int column_counter = 0;
-    for(int i=0;i<m_rows;i++){
-        for(int j=0;j<m_columns;j++){
-            if(j < column_counter){
-                L(i,j) = this->m_data[i * this->m_columns+ j];
-            }
-            else if(j == column_counter){
-                L(i,j) = 1;
-            }
-            else{
-                L(i,j) = 0;
-            }
-        }
-        column_counter++;
-    }
+    L = extract_L();
     // std::cout << "L matrix" << std::endl;
     // L.print();
     
-
     // init
     for(int i=0;i<m_rows;i++){
         res.m_data[i] = b.m_data[i];
@@ -317,7 +313,8 @@ Matrix Matrix::sups_forward(const Matrix& b) const{
     return res;
 }
 
-Matrix Matrix::sups_backward(const Matrix& y) const{
+// Backward substitution, takes in vector y and returns vector x (final solution to lin sys)
+Matrix Matrix::subs_backward(const Matrix& y) const{
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
@@ -327,18 +324,7 @@ Matrix Matrix::sups_backward(const Matrix& y) const{
     Matrix res(this->m_rows, 1, std::make_unique<double[]>(this->m_rows));
 
     // extract U matrix
-    int column_counter = 0;
-    for(int i=0;i<m_rows;i++){
-        for(int j=0;j<m_columns;j++){
-            if(j >= column_counter){
-                U(i,j) = this->m_data[i * this->m_columns+ j];
-            }
-            else{
-                U(i,j) = 0;
-            }
-        }
-        column_counter++;
-    }
+    U = extract_U(); 
 
 //    std::cout << "U matrix" << std::endl;
 //    U.print();
@@ -358,6 +344,7 @@ Matrix Matrix::sups_backward(const Matrix& y) const{
     return res;
 }
 
+// helper functions for LUP decompostion when row swapping is needed
 void Matrix::swap_rows(int row1, int row2){
     if(row1 >= this->m_rows || row2 >= this->m_rows){
         throw std::invalid_argument("One or both row indices specified larger than number of rows"
@@ -377,6 +364,7 @@ void Matrix::swap_rows(int row1, int row2){
     }
 }
 
+// LUP decomposition , return pair of Matrices LU and P, also modifies m_swap_count var
 std::pair<Matrix, Matrix> Matrix::LUP_decomp() {
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
@@ -413,6 +401,8 @@ std::pair<Matrix, Matrix> Matrix::LUP_decomp() {
                 max_val = std::fabs(LU(j, i));
             }
         }
+
+        // compare func definition contained in helper.h
         if(compare(max_val, 0, 1e-9)){
             std::cerr << "Found 0 on pivot element when doing LUP decomposition, "
                          "result may be incorrect";
@@ -438,6 +428,7 @@ std::pair<Matrix, Matrix> Matrix::LUP_decomp() {
     return  std::pair<Matrix, Matrix>(LU,P);
 }
 
+// helper function to extract L matrix from LU
 Matrix Matrix::extract_L() const{
     Matrix L(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows *
                                                                        this->m_columns));
@@ -457,6 +448,7 @@ Matrix Matrix::extract_L() const{
     return L;
 }
 
+// helper function to extract U matrix from LU
 Matrix Matrix::extract_U() const{
     Matrix U(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows *
                                                                        this->m_columns));
@@ -475,6 +467,7 @@ Matrix Matrix::extract_U() const{
     return U;
 }
 
+// solve given linear system with LU decomposition
 Matrix Matrix::solve_w_LU(const Matrix& vec)const {
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
@@ -484,12 +477,12 @@ Matrix Matrix::solve_w_LU(const Matrix& vec)const {
     Matrix l = lu.extract_L();
     Matrix u = lu.extract_U();
 
-    Matrix y = l.sups_forward(vec);
-    Matrix x = u.sups_backward(y); 
+    Matrix y = l.subs_forward(vec);
+    Matrix x = u.subs_backward(y); 
     return x;
 }
 
-// TODO
+// solve given linear system with LUP decomposition
 Matrix Matrix::solve_w_LUP(const Matrix& vec) {
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
@@ -500,11 +493,12 @@ Matrix Matrix::solve_w_LUP(const Matrix& vec) {
     Matrix u = lup.first.extract_U();
 
     Matrix b = lup.second  * vec;
-    Matrix y = l.sups_forward(b);
-    Matrix x = u.sups_backward(y); 
+    Matrix y = l.subs_forward(b);
+    Matrix x = u.subs_backward(y); 
     return x;
 }
 
+// Calculate determinant of matrix with given formula
 double Matrix::det_w_LUP() const{
     double res = 1;
 

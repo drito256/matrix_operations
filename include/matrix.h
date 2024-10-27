@@ -29,8 +29,8 @@ class Matrix{
        // ostale metode za supstituciju , dekompoziciju, determinantu
        Matrix transpose() const;
        Matrix inverse() const;
-       Matrix sups_backward(const Matrix& b) const;
-       Matrix sups_forward(const Matrix& y) const;
+       Matrix subs_backward(const Matrix& b) const;
+       Matrix subs_forward(const Matrix& y) const;
        Matrix LU_decomp() const;
        std::pair<Matrix, Matrix> LUP_decomp();
        Matrix extract_L() const;
