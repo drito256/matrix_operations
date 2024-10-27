@@ -23,5 +23,7 @@ int main(){
     Matrix lup = a.LUP_decomp().first;
     std::cout << lup.det_w_LUP() << std::endl;;
 
+    (a.inverse()).print();
+
     return 0;
 }

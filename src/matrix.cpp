@@ -1,4 +1,5 @@
 #include "../include/matrix.h"
+#include <memory>
 #include <stdexcept>
 
 
@@ -512,5 +513,35 @@ double Matrix::det_w_LUP() const{
     return res;
 }
 
-/*Matrix Matrix::inverse() const{
-}*/
+Matrix Matrix::inverse(){
+    if (this->m_rows != this->m_columns) {
+        throw std::invalid_argument("Matrix must be square to calculate its inverse");
+    }
+
+    int n = this->m_rows;
+    Matrix inv(n, n, std::make_unique<double[]>(n * n));
+    
+    std::pair<Matrix, Matrix> lup = this->LUP_decomp();
+    Matrix l = lup.first.extract_L();
+    Matrix u = lup.first.extract_U();
+    
+    // solve for each column of the inverse
+    for (int i = 0; i < n; i++) {
+        // create the i-th column of the identity matrix
+        Matrix e(n,1,std::make_unique<double[]>(n));
+        // init matrix
+        for(int j=0;j<n;j++)
+            e(j,0) = 0;
+        e(i,0) = 1;
+
+        
+        Matrix y = l.subs_forward(lup.second * e);
+        Matrix x = u.subs_backward(y);
+
+        for (int j = 0; j < n; j++) {
+            inv(j, i) = x(j,0);
+        }
+    }
+
+    return inv;
+}
