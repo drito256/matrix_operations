@@ -273,9 +273,8 @@ Matrix Matrix::LU_decomp() const{
     for(int i=0;i<n-1;i++){
         for(int j=i+1;j<n;j++){
             if(compare(res(i,i), 0, 1e-9)){
-                std::cerr << "Found 0 on pivot element when doing LU decomposition, "
-                             "result may be incorrect";
-                continue;
+                throw std::runtime_error("Found 0 on pivot element when doing LU decomposition,"
+                                         "stopping further calculations\n");
             }
             res(j,i) /= res(i,i); 
             for(int k=i+1;k<n;k++){
@@ -319,7 +318,7 @@ Matrix Matrix::subs_backward(const Matrix& y) const{
     if(this->m_rows != this->m_columns){
         throw std::invalid_argument("Matrix must be square");
     }
-
+    bool error_flag = false;
     Matrix U(this->m_rows, this->m_columns, std::make_unique<double[]>(this->m_rows * 
                                                                        this->m_columns));
     Matrix res(this->m_rows, 1, std::make_unique<double[]>(this->m_rows));
@@ -339,6 +338,10 @@ Matrix Matrix::subs_backward(const Matrix& y) const{
     for (int i = n - 1; i >= 0; --i) {
         for (int j = i + 1; j < n; ++j) {
             res.m_data[i] -= U(i, j) * res.m_data[j];
+        }
+        if(compare(U(i,i),0,1e-9)){
+            throw std::runtime_error("ERROR: Found 0 on pivot element when doing backward"
+                                     "substitution\n");
         }
         res.m_data[i] /= U(i, i);
     }
@@ -405,9 +408,7 @@ std::pair<Matrix, Matrix> Matrix::LUP_decomp() {
 
         // compare func definition contained in helper.h
         if(compare(max_val, 0, 1e-9)){
-            std::cerr << "Found 0 on pivot element when doing LUP decomposition, "
-                         "result may be incorrect";
-            continue;
+            throw std::runtime_error("ERROR: Found 0 on pivot element");
         }
 
         // swap rows
@@ -500,16 +501,17 @@ Matrix Matrix::solve_w_LUP(const Matrix& vec) {
 }
 
 // Calculate determinant of matrix with given formula
-double Matrix::det_w_LUP() const{
+double Matrix::det() {
     double res = 1;
+    std::pair<Matrix, Matrix> lup = LUP_decomp();
 
-    Matrix u = extract_U();
+    Matrix u = lup.first.extract_U();
 
     for(int i=0;i<u.m_rows;i++){
         res *= u(i,i);
     }
 
-    res *= ((m_swap_count % 2 == 0) ? 1 : -1);
+    res *= ((u.m_swap_count % 2 == 0) ? 1 : -1);
     return res;
 }
 
@@ -522,8 +524,6 @@ Matrix Matrix::inverse(){
     Matrix inv(n, n, std::make_unique<double[]>(n * n));
     
     std::pair<Matrix, Matrix> lup = this->LUP_decomp();
-    Matrix l = lup.first.extract_L();
-    Matrix u = lup.first.extract_U();
     
     // solve for each column of the inverse
     for (int i = 0; i < n; i++) {
@@ -534,9 +534,8 @@ Matrix Matrix::inverse(){
             e(j,0) = 0;
         e(i,0) = 1;
 
-        
-        Matrix y = l.subs_forward(lup.second * e);
-        Matrix x = u.subs_backward(y);
+        Matrix y = (lup.first).subs_forward(lup.second  * e);
+        Matrix x = (lup.first).subs_backward(y);
 
         for (int j = 0; j < n; j++) {
             inv(j, i) = x(j,0);

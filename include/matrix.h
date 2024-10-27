@@ -37,7 +37,7 @@ class Matrix{
        Matrix extract_U() const;
        Matrix solve_w_LU(const Matrix& vec) const;
        Matrix solve_w_LUP(const Matrix& vec);  // not const cause of swap_count
-       double det_w_LUP() const;
+       double det();
 
        // assignment operator
        Matrix& operator=(const Matrix& matrix);
